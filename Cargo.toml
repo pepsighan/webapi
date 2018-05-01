@@ -1,0 +1,8 @@
+[package]
+name = "webapi_gen"
+version = "0.1.0"
+authors = ["Sharad Chand <sharad.d.chand@gmail.com>"]
+
+[dependencies]
+weedle = "0.3.0"
+wasm-bindgen = "0.2.7"
