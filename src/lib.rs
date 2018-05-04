@@ -1,4 +1,6 @@
 extern crate weedle;
+#[macro_use]
+extern crate failure;
 
 use std::{fs, io::Read};
 use types::Types;
@@ -6,6 +8,7 @@ use traits::Scrape;
 
 mod traits;
 mod types;
+mod result;
 
 pub struct Defs {
     types: Types

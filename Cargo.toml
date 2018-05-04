@@ -5,3 +5,4 @@ authors = ["Sharad Chand <sharad.d.chand@gmail.com>"]
 
 [dependencies]
 weedle = "0.3.0"
+failure = "0.1.1"
