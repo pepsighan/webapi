@@ -6,19 +6,20 @@ use weedle::{
     common::Identifier
 };
 use traits::Scrape;
+use std::collections::HashSet;
 
-pub struct Types(Vec<String>);
+pub struct Types(HashSet<String>);
 
 impl Scrape for Types {
     type From = Definitions;
 
     fn scrape(from: &Definitions) -> Types {
-        let mut idents = vec![];
+        let mut idents = HashSet::new();
         for def in from.definitions.iter() {
             match *def {
                 Definition::Interface(ref interface) => {
                     if is_interface_object(interface) {
-                        idents.push(interface.identifier.name.clone());
+                        idents.insert(interface.identifier.name.clone());
                     }
                 }
                 _ => {}
