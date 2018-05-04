@@ -1,5 +1,3 @@
-#[macro_use]
-extern crate wasm_bindgen;
 extern crate weedle;
 
 use std::{fs, io::Read};
