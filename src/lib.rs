@@ -9,6 +9,7 @@ use traits::Scrape;
 mod traits;
 mod types;
 mod result;
+mod members;
 
 pub struct Defs {
     types: Types
