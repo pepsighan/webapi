@@ -29,6 +29,12 @@ impl Scrape for Types {
     }
 }
 
+impl Types {
+    pub fn has(&self, name: &str) -> bool {
+        self.0.iter().any(|ident| ident == name)
+    }
+}
+
 // For the interface to be ECMAScript objects, they must not have `[NoInterfaceObject]`
 // & `[LegacyNamespace]`
 fn is_interface_object(interface: &InterfaceDefinition) -> bool {
