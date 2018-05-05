@@ -5,4 +5,4 @@ authors = ["Sharad Chand <sharad.d.chand@gmail.com>"]
 
 [dependencies]
 weedle = "0.3.0"
-wasm-bindgen = "0.2.7"
+failure = "0.1.1"

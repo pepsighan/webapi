@@ -1,16 +1,21 @@
-#[macro_use]
-extern crate wasm_bindgen;
 extern crate weedle;
+#[macro_use]
+extern crate failure;
 
 use std::{fs, io::Read};
-use weedle::{Definitions, Parse, CompleteStr};
+use types::Types;
+use traits::Scrape;
+
+mod traits;
+mod types;
+mod result;
 
 pub struct Defs {
-
+    types: Types
 }
 
 impl Defs {
-    pub fn generate() {
+    fn read_idl() -> String {
         let paths = fs::read_dir("./defs")
             .unwrap();
 
@@ -19,14 +24,21 @@ impl Defs {
             let path = path.unwrap().path();
             if path.is_file() {
                 let mut file = fs::File::open(path).unwrap();
-                let file_content =
                 file.read_to_string(&mut file_contents).unwrap();
             }
         }
 
-        let parsed = weedle::parse(&file_contents).unwrap();
+        file_contents
+    }
 
-        println!("{:?}", parsed);
+    pub fn read_defs() -> Defs {
+        let content = Self::read_idl();
+        let parsed = weedle::parse(&content).unwrap();
+        let types = Types::scrape(&parsed);
+
+        Defs {
+            types
+        }
     }
 }
 
