@@ -2,8 +2,7 @@ use weedle::{
     Definitions,
     Definition,
     InterfaceDefinition,
-    attribute::ExtendedAttribute,
-    common::Identifier
+    attribute::ExtendedAttribute
 };
 use std::{collections::HashSet, io::Write};
 use traits::WriteBindings;

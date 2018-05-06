@@ -1,7 +1,7 @@
 use weedle::{types::Type, interface::AttributeInterfaceMember};
 use types::Types;
 use traits::{IsDefined, WriteBindings};
-use std::{cmp::Ordering, io::Write};
+use std::io::Write;
 use result::GResult;
 
 #[derive(Debug, Eq, PartialEq, Ord, PartialOrd)]

@@ -1,6 +1,6 @@
 use result::GResult;
 use self::attribute::Attribute;
-use std::{collections::HashMap, io::Write};
+use std::io::Write;
 use traits::WriteBindings;
 use types::Types;
 use weedle::{
