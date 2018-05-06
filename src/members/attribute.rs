@@ -1,6 +1,6 @@
 use weedle::{types::Type, interface::AttributeInterfaceMember};
 use types::Types;
-use traits::{IsDefined, WriteBindings};
+use traits::{IsDefined, WriteBindings, ToSafeName};
 use std::io::Write;
 use result::GResult;
 use heck::SnakeCase;
@@ -37,22 +37,23 @@ impl Attribute {
 impl WriteBindings for Attribute {
     fn write_bindings<T: Write>(&self, buf: &mut T) -> GResult<()> {
         let snake_name = self.identifier.to_snake_case();
+        let safe_name = snake_name.to_safe_name();
         if self.is_global {
-            if self.identifier != snake_name {
+            if self.identifier != safe_name {
                 writeln!(buf, "#[wasm_bindgen(js_name = {})]", self.identifier)?;
             }
 
-            write!(buf, "static {}: ", snake_name)?;
+            write!(buf, "static {}: ", safe_name)?;
             self.type_.write_bindings(buf)?;
             writeln!(buf, ";")?;
         } else {
-            if self.identifier == snake_name {
+            if self.identifier == safe_name {
                 writeln!(buf, "#[wasm_bindgen(method, getter)]")?;
             } else {
                 writeln!(buf, "#[wasm_bindgen(method, getter = {})]", self.identifier)?;
             }
 
-            write!(buf, "fn {name}(this: &{interface}) -> ", name = snake_name, interface = self.interface)?;
+            write!(buf, "fn {name}(this: &{interface}) -> ", name = safe_name, interface = self.interface)?;
             self.type_.write_bindings(buf)?;
             writeln!(buf, ";\n")?;
 
