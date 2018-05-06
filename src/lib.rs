@@ -1,6 +1,7 @@
 extern crate weedle;
 #[macro_use]
 extern crate failure;
+extern crate heck;
 
 use std::{fs, io::{Read, Write}};
 use types::Types;
@@ -70,9 +71,13 @@ extern {{
 #[cfg(test)]
 mod test {
     use super::*;
+    use std::io::Cursor;
 
     #[test]
     fn generate() {
-        Defs::generate();
+        let mut string = Cursor::new(Vec::new());
+        Defs::read_defs().generate(&mut string).unwrap();
+
+        println!("{}", String::from_utf8(string.into_inner()).unwrap());
     }
 }

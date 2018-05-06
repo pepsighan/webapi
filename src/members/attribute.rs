@@ -3,6 +3,7 @@ use types::Types;
 use traits::{IsDefined, WriteBindings};
 use std::io::Write;
 use result::GResult;
+use heck::SnakeCase;
 
 #[derive(Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub struct Attribute {
@@ -35,23 +36,36 @@ impl Attribute {
 
 impl WriteBindings for Attribute {
     fn write_bindings<T: Write>(&self, buf: &mut T) -> GResult<()> {
+        let snake_name = self.identifier.to_snake_case();
         if self.is_global {
-            write!(buf, "static {}: ", self.identifier)?;
+            if self.identifier != snake_name {
+                writeln!(buf, "#[wasm_bindgen(js_name = {})]", self.identifier)?;
+            }
+
+            write!(buf, "static {}: ", snake_name)?;
             self.type_.write_bindings(buf)?;
             writeln!(buf, ";")?;
         } else {
-            write!(buf, r#"
-#[wasm_bindgen(method, getter)
-fn {name}(this: &{interface}) -> "#, name = self.identifier, interface = self.interface)?;
+            if self.identifier == snake_name {
+                writeln!(buf, "#[wasm_bindgen(method, getter)")?;
+            } else {
+                writeln!(buf, "#[wasm_bindgen(method, getter = {}]", self.identifier)?;
+            }
+
+            write!(buf, "fn {name}(this: &{interface}) -> ", name = snake_name, interface = self.interface)?;
             self.type_.write_bindings(buf)?;
-            writeln!(buf, ";")?;
+            writeln!(buf, ";\n")?;
 
             if !self.readonly {
-                write!(buf, r#"
-#[wasm_bindgen(method, setter)]
-fn set_{name}(this: &{interface}) -> "#, name = self.identifier, interface = self.interface)?;
+                if self.identifier == snake_name {
+                    writeln!(buf, "#[wasm_bindgen(method, setter)")?;
+                } else {
+                    writeln!(buf, "#[wasm_bindgen(method, setter = {}]", self.identifier)?;
+                }
+
+                write!(buf, "fn set_{name}(this: &{interface}) -> ", name = snake_name, interface = self.interface)?;
                 self.type_.write_bindings(buf)?;
-                write!(buf, ";")?;
+                writeln!(buf, ";\n")?;
             }
         }
         Ok(())
