@@ -6,6 +6,7 @@ use std::{fs, io::{Read, Write}};
 use types::Types;
 use result::GResult;
 use traits::WriteBindings;
+use members::Members;
 
 mod traits;
 mod types;
@@ -13,7 +14,8 @@ mod result;
 mod members;
 
 pub struct Defs {
-    types: Types
+    types: Types,
+    members: Members
 }
 
 impl Defs {
@@ -37,9 +39,11 @@ impl Defs {
         let content = Self::read_idl();
         let parsed = weedle::parse(&content).unwrap();
         let types = Types::scrape(&parsed);
+        let members = Members::scrape(&parsed, &types);
 
         Defs {
-            types
+            types,
+            members
         }
     }
 
@@ -55,6 +59,7 @@ use wasm_bindgen::prelude::*;
 extern {{
         ")?;
         self.types.write_bindings(buf)?;
+        self.members.write_bindings(buf)?;
         write!(buf, "
 }}
         ")?;
