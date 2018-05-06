@@ -1,7 +1,8 @@
 use weedle::{types::Type, interface::AttributeInterfaceMember};
 use types::Types;
-use traits::IsDefined;
-use std::cmp::Ordering;
+use traits::{IsDefined, WriteBindings};
+use std::{cmp::Ordering, io::Write};
+use result::GResult;
 
 #[derive(Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub struct Attribute {
@@ -29,5 +30,30 @@ impl Attribute {
         } else {
             None
         }
+    }
+}
+
+impl WriteBindings for Attribute {
+    fn write_bindings<T: Write>(&self, buf: &mut T) -> GResult<()> {
+        if self.is_global {
+            write!(buf, "static {}: ", self.identifier)?;
+            self.type_.write_bindings(buf)?;
+            writeln!(buf, ";")?;
+        } else {
+            write!(buf, r#"
+#[wasm_bindgen(method, getter)
+fn {name}(this: &{interface}) -> "#, name = self.identifier, interface = self.interface)?;
+            self.type_.write_bindings(buf)?;
+            writeln!(buf, ";")?;
+
+            if !self.readonly {
+                write!(buf, r#"
+#[wasm_bindgen(method, setter)]
+fn set_{name}(this: &{interface}) -> "#, name = self.identifier, interface = self.interface)?;
+                self.type_.write_bindings(buf)?;
+                write!(buf, ";")?;
+            }
+        }
+        Ok(())
     }
 }

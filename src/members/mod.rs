@@ -51,6 +51,15 @@ impl Members {
     }
 }
 
+impl WriteBindings for Members {
+    fn write_bindings<T: Write>(&self, buf: &mut T) -> GResult<()> {
+        for mem in self.0.iter() {
+            mem.write_bindings(buf)?;
+        }
+        Ok(())
+    }
+}
+
 #[derive(Debug, Ord, PartialOrd, PartialEq, Eq)]
 enum Member {
     Attribute(Attribute)
@@ -67,6 +76,14 @@ impl Member {
                     types)?
                 )),
             _ => None
+        }
+    }
+}
+
+impl WriteBindings for Member {
+    fn write_bindings<T: Write>(&self, buf: &mut T) -> GResult<()> {
+        match *self {
+            Member::Attribute(ref attr) => attr.write_bindings(buf)
         }
     }
 }
