@@ -58,7 +58,8 @@ use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
 extern {{
-        ")?;
+
+")?;
         self.types.write_bindings(buf)?;
         self.members.write_bindings(buf)?;
         write!(buf, "
