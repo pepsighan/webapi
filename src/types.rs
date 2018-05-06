@@ -5,7 +5,9 @@ use weedle::{
     attribute::ExtendedAttribute,
     common::Identifier
 };
-use std::collections::HashSet;
+use std::{collections::HashSet, io::Write};
+use traits::WriteBindings;
+use result::GResult;
 
 pub struct Types(HashSet<String>);
 
@@ -29,6 +31,19 @@ impl Types {
 impl Types {
     pub fn has(&self, name: &str) -> bool {
         self.0.iter().any(|ident| ident == name)
+    }
+}
+
+impl WriteBindings for Types {
+    fn write_bindings<T: Write>(&self, buf: &mut T) -> GResult<()> {
+        for typ in self.0.iter() {
+            if typ == "Window" {
+                writeln!(buf, "type window;")?;
+            } else {
+                writeln!(buf, "type {};", typ)?;
+            }
+        }
+        Ok(())
     }
 }
 
