@@ -1,59 +1,84 @@
-use std::collections::HashMap;
+use result::GResult;
 use self::attribute::Attribute;
-use weedle::{Definitions, Definition, interface::InterfaceMember};
+use std::{collections::HashMap, io::Write};
+use traits::WriteBindings;
 use types::Types;
+use weedle::{
+    Definition,
+    Definitions,
+    attribute::{
+        ExtendedAttributeList,
+        ExtendedAttribute
+    },
+    interface::InterfaceMember
+};
 
 mod attribute;
 
 #[derive(Debug)]
-pub struct Members(HashMap<String, Vec<Member>>);
+pub struct Members(Vec<Member>);
 
 impl Members {
     pub fn scrape(from: &Definitions, types: &Types) -> Members {
-        let mut members = HashMap::new();
+        let mut members: Vec<Member> = vec![];
         for def in from.definitions.iter() {
             match *def {
                 Definition::Interface(ref interface) => {
                     let name = &interface.identifier.name;
                     if types.has(name) {
-                        let mut this_members = vec![];
-
                         for member in interface.members.body.iter() {
-                            if let Some(member) = Member::scrape(member, types) {
-                                this_members.push(member);
+                            if let Some(member) = Member::scrape(member,&name, types) {
+                                members.push(member);
                             }
                         }
-
-                        if members.contains_key(name) {
-                            let mut existing_members = members.remove(name)
-                                .unwrap();
-
-                            this_members.append(&mut existing_members);
-
-                            members.insert(name.clone(), this_members);
-                        } else {
-                            members.insert(name.clone(), this_members);
-                        }
                     }
-                },
+                }
                 _ => {}
             }
         }
+
+        members.sort();
+        members.dedup_by(|a, b| {
+            match (a, b) {
+                (Member::Attribute(ref attra), Member::Attribute(ref attrb)) => {
+                    (attra.interface == attrb.interface || attra.is_global == attrb.is_global)
+                        && attra.identifier == attrb.identifier
+                }
+            }
+        });
+
         Members(members)
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Ord, PartialOrd, PartialEq, Eq)]
 enum Member {
     Attribute(Attribute)
 }
 
 impl Member {
-    fn scrape(from: &InterfaceMember, types: &Types) -> Option<Member> {
+    fn scrape(from: &InterfaceMember, interface: &str, types: &Types) -> Option<Member> {
         match *from {
             InterfaceMember::Attribute(ref attribute) =>
-                Some(Member::Attribute(Attribute::scrape(attribute, types)?)),
+                Some(Member::Attribute(Attribute::scrape(
+                    attribute,
+                    is_global(attribute.attributes.as_ref()),
+                    interface,
+                    types)?
+                )),
             _ => None
         }
     }
+}
+
+fn is_global(attrs: Option<&ExtendedAttributeList>) -> bool {
+    attrs.map(|attrs| {
+        attrs.body.list.iter().any(|attr| {
+            match *attr {
+                ExtendedAttribute::Ident(ref attr) => attr.lhs_identifier.name == "Global",
+                ExtendedAttribute::IdentList(ref attr) => attr.identifier.name == "Global",
+                _ => false
+            }
+        })
+    }).unwrap_or(false)
 }
