@@ -2,7 +2,7 @@ use result::GResult;
 use std::io::Write;
 use types::Types;
 use weedle::{
-    types::{Type, SingleType, MayBeNull},
+    types::*,
     common::Identifier
 };
 
@@ -22,6 +22,15 @@ impl IsDefined for Type {
             Type::Single(ref single) => single.is_defined(custom),
             // Don't know how to map union types to JS Environment
             Type::Union(_) => false
+        }
+    }
+}
+
+impl WriteBindings for Type {
+    fn write_bindings<T: Write>(&self, buf: &mut T) -> GResult<()> {
+        match *self {
+            Type::Single(ref single) => single.write_bindings(buf),
+            Type::Union(_) => unreachable!()
         }
     }
 }
@@ -68,14 +77,120 @@ impl IsDefined for SingleType {
     }
 }
 
+impl WriteBindings for SingleType {
+    fn write_bindings<T: Write>(&self, buf: &mut T) -> GResult<()> {
+        match *self {
+            SingleType::Any(_) => unreachable!(),
+            SingleType::Promise(_) => unreachable!(),
+            SingleType::Integer(ref int) => int.write_bindings(buf)?,
+            SingleType::FloatingPoint(ref float) => float.write_bindings(buf)?,
+            SingleType::Boolean(_) => write!(buf, "bool")?,
+            SingleType::Byte(_) => write!(buf, "i8")?,
+            SingleType::Octet(_) => write!(buf, "u8")?,
+            SingleType::ByteString(_) => unreachable!(),
+            SingleType::DOMString(_) => write!(buf, "String")?,
+            SingleType::USVString(_) => write!(buf, "String")?,
+            SingleType::Sequence(_) => unreachable!(),
+            SingleType::Object(_) => unreachable!(),
+            SingleType::Symbol(_) => write!(buf, "JsValue")?,
+            SingleType::Error(_) => write!(buf, "JsValue")?,
+            SingleType::ArrayBuffer(_) => unreachable!(),
+            SingleType::DataView(_) => unreachable!(),
+            SingleType::Int8Array(_) => unreachable!(),
+            SingleType::Int16Array(_) => unreachable!(),
+            SingleType::Int32Array(_) => unreachable!(),
+            SingleType::Uint8Array(_) => unreachable!(),
+            SingleType::Uint16Array(_) => unreachable!(),
+            SingleType::Uint32Array(_) => unreachable!(),
+            SingleType::Uint8ClampedArray(_) => unreachable!(),
+            SingleType::Float32Array(_) => unreachable!(),
+            SingleType::Float64Array(_) => unreachable!(),
+            SingleType::FrozenArrayType(_) => unreachable!(),
+            SingleType::RecordType(_) => unreachable!(),
+            SingleType::Identifier(ref identifier) => identifier.write_bindings(buf)?,
+        };
+        Ok(())
+    }
+}
+
 impl<T: IsDefined> IsDefined for MayBeNull<T> {
     fn is_defined(&self, custom: &Types) -> bool {
+        if self.q_mark.is_some() {
+            return false;
+        }
         self.type_.is_defined(custom)
+    }
+}
+
+impl<I: WriteBindings> WriteBindings for MayBeNull<I> {
+    fn write_bindings<T: Write>(&self, buf: &mut T) -> GResult<()> {
+        // currently does not support optional
+        self.type_.write_bindings(buf)
     }
 }
 
 impl IsDefined for Identifier {
     fn is_defined(&self, custom: &Types) -> bool {
         custom.has(&self.name)
+    }
+}
+
+impl WriteBindings for Identifier {
+    fn write_bindings<T: Write>(&self, buf: &mut T) -> GResult<()> {
+        write!(buf, "{}", self.name)?;
+        Ok(())
+    }
+}
+
+impl WriteBindings for IntegerType {
+    fn write_bindings<T: Write>(&self, buf: &mut T) -> GResult<()> {
+        match *self {
+            IntegerType::Short(ref short) => short.write_bindings(buf),
+            IntegerType::LongLong(ref longlong) => longlong.write_bindings(buf),
+            IntegerType::Long(ref long) => long.write_bindings(buf),
+        }
+    }
+}
+
+impl WriteBindings for ShortType {
+    fn write_bindings<T: Write>(&self, buf: &mut T) -> GResult<()> {
+        if self.unsigned.is_some() {
+            write!(buf, "u16")?;
+        } else {
+            write!(buf, "i16")?;
+        }
+        Ok(())
+    }
+}
+
+impl WriteBindings for LongLongType {
+    fn write_bindings<T: Write>(&self, buf: &mut T) -> GResult<()> {
+        if self.unsigned.is_some() {
+            write!(buf, "u64")?;
+        } else {
+            write!(buf, "i64")?;
+        }
+        Ok(())
+    }
+}
+
+impl WriteBindings for LongType {
+    fn write_bindings<T: Write>(&self, buf: &mut T) -> GResult<()> {
+        if self.unsigned.is_some() {
+            write!(buf, "u32")?;
+        } else {
+            write!(buf, "i32")?;
+        }
+        Ok(())
+    }
+}
+
+impl WriteBindings for FloatingPointType {
+    fn write_bindings<T: Write>(&self, buf: &mut T) -> GResult<()> {
+        match *self {
+            FloatingPointType::Float(_) => write!(buf, "f32")?,
+            FloatingPointType::Double(_) => write!(buf, "f64")?
+        };
+        Ok(())
     }
 }
