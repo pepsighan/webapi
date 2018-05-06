@@ -2,8 +2,10 @@ extern crate weedle;
 #[macro_use]
 extern crate failure;
 
-use std::{fs, io::Read};
+use std::{fs, io::{Read, Write}};
 use types::Types;
+use result::GResult;
+use traits::WriteBindings;
 
 mod traits;
 mod types;
@@ -39,6 +41,24 @@ impl Defs {
         Defs {
             types
         }
+    }
+
+    pub fn generate<T: Write>(&self, buf: &mut T) -> GResult<()> {
+        write!(buf, "
+#![feature(proc_macro, wasm_custom_section, wasm_import_module)]
+
+extern crate wasm_bindgen;
+
+use wasm_bindgen::prelude::*;
+
+#[wasm_bindgen]
+extern {{
+        ")?;
+        self.types.write_bindings(buf)?;
+        write!(buf, "
+}}
+        ")?;
+        Ok(())
     }
 }
 
