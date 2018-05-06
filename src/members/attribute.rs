@@ -45,7 +45,7 @@ impl WriteBindings for Attribute {
 
             write!(buf, "static {}: ", safe_name)?;
             self.type_.write_bindings(buf)?;
-            writeln!(buf, ";")?;
+            writeln!(buf, ";\n")?;
         } else {
             if self.identifier == safe_name {
                 writeln!(buf, "#[wasm_bindgen(method, getter)]")?;

@@ -27,7 +27,12 @@ impl Members {
                     let name = &interface.identifier.name;
                     if types.has(name) {
                         for member in interface.members.body.iter() {
-                            if let Some(member) = Member::scrape(member,&name, types) {
+                            if let Some(member) = Member::scrape(
+                                member,
+                                is_global(interface.attributes.as_ref()),
+                                &name,
+                                types
+                            ) {
                                 members.push(member);
                             }
                         }
@@ -66,15 +71,10 @@ enum Member {
 }
 
 impl Member {
-    fn scrape(from: &InterfaceMember, interface: &str, types: &Types) -> Option<Member> {
+    fn scrape(from: &InterfaceMember, is_global: bool, interface: &str, types: &Types) -> Option<Member> {
         match *from {
             InterfaceMember::Attribute(ref attribute) =>
-                Some(Member::Attribute(Attribute::scrape(
-                    attribute,
-                    is_global(attribute.attributes.as_ref()),
-                    interface,
-                    types)?
-                )),
+                Some(Member::Attribute(Attribute::scrape(attribute, is_global, interface, types)?)),
             _ => None
         }
     }
