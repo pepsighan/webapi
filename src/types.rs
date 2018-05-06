@@ -5,15 +5,12 @@ use weedle::{
     attribute::ExtendedAttribute,
     common::Identifier
 };
-use traits::Scrape;
 use std::collections::HashSet;
 
 pub struct Types(HashSet<String>);
 
-impl Scrape for Types {
-    type From = Definitions;
-
-    fn scrape(from: &Definitions) -> Types {
+impl Types {
+    pub fn scrape(from: &Definitions) -> Types {
         let mut idents = HashSet::new();
         for def in from.definitions.iter() {
             match *def {
@@ -26,6 +23,12 @@ impl Scrape for Types {
             };
         }
         Types(idents)
+    }
+}
+
+impl Types {
+    pub fn has(&self, name: &str) -> bool {
+        self.0.iter().any(|ident| ident == name)
     }
 }
 

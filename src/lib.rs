@@ -4,11 +4,11 @@ extern crate failure;
 
 use std::{fs, io::Read};
 use types::Types;
-use traits::Scrape;
 
 mod traits;
 mod types;
 mod result;
+mod members;
 
 pub struct Defs {
     types: Types
