@@ -36,6 +36,11 @@ impl Attribute {
 
 impl WriteBindings for Attribute {
     fn write_bindings<T: Write>(&self, buf: &mut T) -> GResult<()> {
+        // Currently bindgen does not support rust keywords on macro
+        if self.identifier.is_unsafe_name() {
+            return Ok(());
+        }
+
         let snake_name = self.identifier.to_snake_case();
         let safe_name = snake_name.to_safe_name();
         if self.is_global {

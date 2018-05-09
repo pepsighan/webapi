@@ -18,15 +18,21 @@ pub trait IsDefined {
 
 // Convert a rust keyword into a safe name by appending _
 pub trait ToSafeName {
+    fn is_unsafe_name(&self) -> bool;
+
     fn to_safe_name(&self) -> String;
 }
 
 const KEYWORDS: [&'static str; 4] = ["type", "self", "as", "loop"];
 
 impl ToSafeName for String {
+    fn is_unsafe_name(&self) -> bool {
+        KEYWORDS.contains(&self.as_str())
+    }
+
     fn to_safe_name(&self) -> String {
         let mut string = self.to_string();
-        if KEYWORDS.contains(&string.as_ref())  {
+        if self.is_unsafe_name() {
             string.push_str("_");
         }
         string
