@@ -80,7 +80,7 @@ mod test {
             .write(true)
             .truncate(true)
             .create(true)
-            .open("target/test.rs").unwrap();
+            .open("../target/test.rs").unwrap();
 
         Defs::read_defs().generate(&mut file).unwrap();
     }
