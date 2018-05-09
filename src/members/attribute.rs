@@ -48,9 +48,9 @@ impl WriteBindings for Attribute {
             writeln!(buf, ";\n")?;
         } else {
             if self.identifier == safe_name {
-                writeln!(buf, "#[wasm_bindgen(method, getter)]")?;
+                writeln!(buf, "#[wasm_bindgen(method, getter, structural)]")?;
             } else {
-                writeln!(buf, "#[wasm_bindgen(method, getter = {})]", self.identifier)?;
+                writeln!(buf, "#[wasm_bindgen(method, getter = {}, structural)]", self.identifier)?;
             }
 
             write!(buf, "fn {name}(this: &{interface}) -> ", name = safe_name, interface = self.interface)?;
@@ -59,14 +59,14 @@ impl WriteBindings for Attribute {
 
             if !self.readonly {
                 if self.identifier == snake_name {
-                    writeln!(buf, "#[wasm_bindgen(method, setter)]")?;
+                    writeln!(buf, "#[wasm_bindgen(method, setter, structural)]")?;
                 } else {
-                    writeln!(buf, "#[wasm_bindgen(method, setter = {})]", self.identifier)?;
+                    writeln!(buf, "#[wasm_bindgen(method, setter = {}, structural)]", self.identifier)?;
                 }
 
-                write!(buf, "fn set_{name}(this: &{interface}) -> ", name = snake_name, interface = self.interface)?;
+                write!(buf, "fn set_{name}(this: &{interface}, val: ", name = snake_name, interface = self.interface)?;
                 self.type_.write_bindings(buf)?;
-                writeln!(buf, ";\n")?;
+                writeln!(buf, ");\n")?;
             }
         }
         Ok(())
