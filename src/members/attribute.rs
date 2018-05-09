@@ -48,7 +48,7 @@ impl WriteBindings for Attribute {
                 writeln!(buf, "#[wasm_bindgen(js_name = {})]", self.identifier)?;
             }
 
-            write!(buf, "static {}: ", safe_name)?;
+            write!(buf, "pub static {}: ", safe_name)?;
             self.type_.write_bindings(buf)?;
             writeln!(buf, ";\n")?;
         } else {
@@ -58,7 +58,7 @@ impl WriteBindings for Attribute {
                 writeln!(buf, "#[wasm_bindgen(method, getter = {}, structural)]", self.identifier)?;
             }
 
-            write!(buf, "fn {name}(this: &{interface}) -> ", name = safe_name, interface = self.interface)?;
+            write!(buf, "pub fn {name}(this: &{interface}) -> ", name = safe_name, interface = self.interface)?;
             self.type_.write_bindings(buf)?;
             writeln!(buf, ";\n")?;
 
@@ -69,7 +69,7 @@ impl WriteBindings for Attribute {
                     writeln!(buf, "#[wasm_bindgen(method, setter = {}, structural)]", self.identifier)?;
                 }
 
-                write!(buf, "fn set_{name}(this: &{interface}, val: ", name = snake_name, interface = self.interface)?;
+                write!(buf, "pub fn set_{name}(this: &{interface}, val: ", name = snake_name, interface = self.interface)?;
                 self.type_.write_bindings(buf)?;
                 writeln!(buf, ");\n")?;
             }

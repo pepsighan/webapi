@@ -72,13 +72,16 @@ extern {{
 #[cfg(test)]
 mod test {
     use super::*;
-    use std::io::Cursor;
+    use std::fs::OpenOptions;
 
     #[test]
     fn generate() {
-        let mut string = Cursor::new(Vec::new());
-        Defs::read_defs().generate(&mut string).unwrap();
+        let mut file = OpenOptions::new()
+            .write(true)
+            .truncate(true)
+            .create(true)
+            .open("target/test.rs").unwrap();
 
-        println!("{}", String::from_utf8(string.into_inner()).unwrap());
+        Defs::read_defs().generate(&mut file).unwrap();
     }
 }

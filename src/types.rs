@@ -37,9 +37,9 @@ impl WriteBindings for Types {
     fn write_bindings<T: Write>(&self, buf: &mut T) -> GResult<()> {
         for typ in self.0.iter() {
             if typ == "Window" {
-                writeln!(buf, "type window;\n")?;
+                writeln!(buf, "pub type window;\n")?;
             } else {
-                writeln!(buf, "type {};\n", typ)?;
+                writeln!(buf, "pub type {};\n", typ)?;
             }
         }
         Ok(())
